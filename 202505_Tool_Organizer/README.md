@@ -28,5 +28,4 @@ This model is originally from MakerWorld:
 
 This model is licensed under the **Standard Digital File License (SDFL)** provided by MakerWorld.
 
-For full license details, see MakerWorld’s licensing page:
-https://makerworld.com/en/info/licensing
+For full license details, see [MakerWorld’s licensing page](https://makerworld.com/en/info/licensing).

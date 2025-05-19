@@ -4,12 +4,13 @@
 
  ## Repository Structure
 
- - `Tool_Organizer/`: First project—goody bag (tool organizer) for Kailai's birthday.
+- `202505_Tool_Organizer/`: First project—goody bag (tool organizer) for Kailai's birthday.
+- `202502_Valentine_gifts/`: Second project—personalized phone stands as Valentine’s gifts.
 
  ## Guidelines
 
  - When adding a new 3D modeling project:
-   - Create a new subfolder named after the project.
+   - Create a new subfolder named with the pattern `YYYYMM_<ProjectName>`, where `YYYYMM` is the year and month prefix (e.g., `202505_Tool_Organizer`).
    - Place source files (.3mf) and export files (.stl, archives) inside.
    - Add a `README.md` in the project folder describing the design, listing files, and providing printing instructions.
    - Update the top-level `README.md` to include the new project.
