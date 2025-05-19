@@ -1,0 +1,5 @@
+#!/usr/bin/env bash
+# Pre-commit hook: auto-generate PNG previews for STL files
+echo "Generating missing STL previews..."
+python3 scripts/generate_stl_previews.py
+exit 0
