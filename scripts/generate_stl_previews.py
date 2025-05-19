@@ -13,16 +13,18 @@ def generate_previews(root_dir='.'):
                 png_name = os.path.splitext(filename)[0] + '.png'
                 png_path = os.path.join(root, png_name)
                 # Only generate if PNG is missing or outdated
+                regenerate = True
                 if os.path.exists(png_path):
                     try:
                         stl_mtime = os.path.getmtime(stl_path)
                         png_mtime = os.path.getmtime(png_path)
                         # skip if PNG is newer than or same as STL
                         if png_mtime >= stl_mtime:
-                            continue
+                            regenerate = False
                     except OSError:
                         # if any issue reading mtimes, regenerate
-                        pass
+                        regenerate = True
+                if regenerate:
                     try:
                         mesh = trimesh.load(stl_path)
                         from trimesh import Scene
