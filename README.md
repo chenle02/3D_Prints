@@ -1,4 +1,6 @@
- # 3D Modeling Repository
+# 3D Modeling Repository
+
+A collection of personal hobby 3D printing projects.
 
  This repository contains 3D modeling projects, organized by subfolders. Each project folder includes source files (.3mf), export files (.stl, archives), and documentation.
 
