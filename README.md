@@ -17,7 +17,6 @@
 - **Zhihe Gift (Zhihe Wu’s 6th Birthday)**
    - Path: `202502_Zhihe_Gift/`
    - Description: Custom gift box for Zhihe Wu’s 6th birthday.
-   - Original model: https://makerworld.com/en/models/1054400?from=search#profileId-1041662
    - License: Standard Digital File License (SDFL) – see https://makerworld.com/en/info/licensing
 
  ## Getting Started
