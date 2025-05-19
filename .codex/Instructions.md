@@ -6,6 +6,7 @@
 
 - `202505_Tool_Organizer/`: First project—goody bag (tool organizer) for Kailai's birthday.
 - `202502_Valentine_gifts/`: Second project—personalized phone stands as Valentine’s gifts.
+- `202502_Zhihe_Gift/`: Third project—custom gift box for Zhihe Wu’s 6th birthday.
 
  ## Guidelines
 

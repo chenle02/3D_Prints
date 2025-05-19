@@ -10,9 +10,13 @@
    - Original model: https://makerworld.com/en/models/717173-tool-organizer#profileId-648086
    - License: Standard Digital File License (SDFL) – see https://makerworld.com/en/info/licensing
 
-  - **Valentine Gifts (Custom Phone Stands)**
+- **Valentine Gifts (Custom Phone Stands)**
    - Path: `202502_Valentine_gifts/`
    - Description: Personalized phone stands as Valentine’s gifts.
+
+- **Zhihe Gift (Zhihe Wu’s 6th Birthday)**
+   - Path: `202502_Zhihe_Gift/`
+   - Description: Custom gift box for Zhihe Wu’s 6th birthday.
    - Original model: https://makerworld.com/en/models/1054400?from=search#profileId-1041662
    - License: Standard Digital File License (SDFL) – see https://makerworld.com/en/info/licensing
 
