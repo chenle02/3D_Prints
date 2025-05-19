@@ -50,3 +50,16 @@
  ## License
 
  This model is licensed under the **Standard Digital File License (SDFL)** provided by MakerWorld. For details, see [MakerWorld’s licensing page](https://makerworld.com/en/info/licensing).
+
+## Previews
+
+![Alben.png](Alben.png)
+![Armstead.png](Armstead.png)
+![Baldwin.png](Baldwin.png)
+![Edens.png](Edens.png)
+![English.png](English.png)
+![Newnham.png](Newnham.png)
+![Phonestand_pengpenglulu_valentines.png](Phonestand_pengpenglulu_valentines.png)
+![Thurman.png](Thurman.png)
+![Watson.png](Watson.png)
+![phonestand_original.png](phonestand_original.png)

@@ -29,3 +29,9 @@ This model is originally from MakerWorld:
 This model is licensed under the **Standard Digital File License (SDFL)** provided by MakerWorld.
 
 For full license details, see [MakerWorld’s licensing page](https://makerworld.com/en/info/licensing).
+
+## Previews
+
+![Happy_Birthday_Kaikai.png](Happy_Birthday_Kaikai.png)
+![obj_1_Body1.png](obj_1_Body1.png)
+![obj_2_Body1.png](obj_2_Body1.png)
