@@ -26,13 +26,17 @@
     git clone <repository-url>
     cd <repository-folder>
     ```
- 1.5. (Optional) Install Git hook to auto-generate STL previews on commit:
+ 2. Install Python dependencies required for preview generation:
+    ```bash
+    pip3 install -r requirements.txt
+    ```
+ 3. (Optional) Install Git hook to auto-generate STL previews on commit:
     ```bash
     scripts/install_hooks.sh
     ```
- 2. Explore project folders.
- 3. Open `.3mf` files in a 3MF-compatible application (e.g., PrusaSlicer) to review print settings.
- 4. Slice and print on your preferred 3D printer.
+ 4. Explore project folders.
+ 5. Open `.3mf` files in a 3MF-compatible application (e.g., PrusaSlicer) to review print settings.
+ 6. Slice and print on your preferred 3D printer.
 
  ## Contributing
 
