@@ -14,6 +14,11 @@ Each project resides in its own folder and includes:
    - **Description:** A custom-designed goody bag/tool organizer for Kailai's birthday.
    - **Original model:** [MakerWorld](https://makerworld.com/en/models/717173-tool-organizer#profileId-648086)
    - **License:** Standard Digital File License (SDFL)
+   
+ - **Heidi's Birthday Gift (Gridfinity Desk Organiser)**
+   - **Path:** `202506_Birthday_Gift_Heidi/`
+   - **Description:** Gridfinity desk organiser with custom words/logo for Heidi’s birthday.
+   - **License:** Standard Digital File License (SDFL)
 
  - **Valentine Gifts (Custom Phone Stands)**
    - **Path:** `202502_Valentine_gifts/`
