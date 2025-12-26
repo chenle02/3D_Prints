@@ -104,7 +104,7 @@ def create_garage():
     # Let's say it engages 2mm into each slot (which is 2.5mm deep).
     # Width = int_w + 4mm - 1mm(tolerance)
     door_print_w = int_w + 3.0
-    door_print_h = int_h + 5.0 # Slightly taller to grab
+    door_print_h = ext_h + 15.0 # Taller than roof to grab from top
     
     door_panel = trimesh.creation.box([door_print_w, door_th, door_print_h])
     door_panel.apply_translation([0, 0, door_print_h/2])
