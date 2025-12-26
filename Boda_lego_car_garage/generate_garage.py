@@ -47,23 +47,28 @@ def create_garage():
     outer_box.apply_translation([0, ext_l/2, ext_h/2])
 
     # Create inner subtraction block (Air)
-    # Size: int_w, int_l + buffer, int_h + buffer
-    # It needs to cut from Y=0 (Front) to Y=ext_l-wall_th
-    # It needs to cut from Z=-1 (Through bottom) to Z=int_h (leaving roof)
-    cutout_depth = ext_l - wall_th
-    inner_box = trimesh.creation.box([int_w, cutout_depth + 10, int_h + 10]) # +10 for buffer
+    # We want to remove material in:
+    # X: [-int_w/2, int_w/2]
+    # Y: [-infinity, ext_l - wall_th] (Front open, Back closed)
+    # Z: [-infinity, int_h] (Bottom open, Top closed)
+    
+    buffer = 5.0
+    
+    # Cut dimensions
+    cut_w = int_w
+    cut_l = (ext_l - wall_th) + buffer # Length from -buffer to (ext_l - wall_th)
+    cut_h = int_h + buffer # Height from -buffer to int_h
+    
+    inner_box = trimesh.creation.box([cut_w, cut_l, cut_h])
     
     # Position inner box
-    # X: 0
-    # Y: Center of the cut. Cut starts at -5 (buffer) and ends at cutout_depth.
-    # Center Y = (cutout_depth - 5) / 2 ?
-    # Let's just align the back face of inner_box to `cutout_depth`.
-    # Inner Box current Y range: [-(L+10)/2, (L+10)/2]
-    # We want max Y to be `cutout_depth`.
-    # shift = cutout_depth - (current_max_y)
-    # current_max_y = (cutout_depth + 10) / 2
-    # shift = cutout_depth - (cutout_depth/2 + 5) = cutout_depth/2 - 5
-    inner_box.apply_translation([0, (cutout_depth + 10)/2 - 5, (int_h + 10)/2 - 5])
+    # X: 0 (Centered)
+    # Y: Center of range [-buffer, ext_l - wall_th]
+    cut_y_center = (ext_l - wall_th - buffer) / 2
+    # Z: Center of range [-buffer, int_h]
+    cut_z_center = (int_h - buffer) / 2
+    
+    inner_box.apply_translation([0, cut_y_center, cut_z_center])
 
     # Create Door Grooves (Vertical Slots)
     # We want the door to slide down from the top? Or just sit there?
