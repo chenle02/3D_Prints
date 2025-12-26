@@ -9,5 +9,13 @@ Design:
 2. No bottom, flat roof. 
 3. Wall/roof width is 5mm.
 4. Generate a script to generate stl file and latter we will print it on
-   BambuLab printer. 5. 
+   BambuLab printer. 5.
+   
+## Generation
+To regenerate the STL files, run:
+```bash
+python3 generate_garage.py
+```
+Ensure you have `trimesh` installed (`pip install trimesh[all]`).
+ 
 
