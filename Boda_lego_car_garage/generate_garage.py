@@ -93,9 +93,13 @@ def create_garage():
     # Position Right Slot: X = int_w/2
     right_slot.apply_translation([int_w/2, slot_y_pos, int_h/2])
 
+    # Top Slot (Cut through the roof to allow door insertion)
+    top_slot = trimesh.creation.box([int_w, slot_width, wall_th * 2])
+    top_slot.apply_translation([0, slot_y_pos, ext_h])
+
     # Combine subtractions
     # Garage = Outer - Inner - Slots
-    garage = trimesh.boolean.difference([outer_box, inner_box, left_slot, right_slot])
+    garage = trimesh.boolean.difference([outer_box, inner_box, left_slot, right_slot, top_slot])
 
     # --- 2. Garage Door ---
     
