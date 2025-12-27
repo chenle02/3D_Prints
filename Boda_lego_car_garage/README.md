@@ -21,5 +21,6 @@ Ensure you have `trimesh` installed (`pip install trimesh[all]`).
 
 ## Previews
 
+![garage_base.png](garage_base.png)
 ![garage_door.png](garage_door.png)
 ![garage_structure.png](garage_structure.png)

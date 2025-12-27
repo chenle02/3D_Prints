@@ -131,17 +131,121 @@ def create_garage():
         
     door_final = trimesh.boolean.difference([door_panel] + windows)
 
-    # --- 3. Export ---
+    # --- 3. Garage Base ---
+    base_h = 6.0
+    groove_depth = 4.0
+    tol = 0.2  # Tolerance for fit
+    
+    # Base Plate
+    base_plate = trimesh.creation.box([ext_w, ext_l, base_h])
+    base_plate.apply_translation([0, ext_l/2, base_h/2])
+    
+    # Ramp
+    ramp_l = 30.0
+    ramp_w = int_w
+    ramp_start_h = 1.0
+    ramp_end_h = base_h
+    
+    # Ramp is a convex hull of 8 points
+    ramp_pts = np.array([
+        [-ramp_w/2, -ramp_l, 0], [ramp_w/2, -ramp_l, 0],
+        [ramp_w/2, 0, 0], [-ramp_w/2, 0, 0],
+        [-ramp_w/2, -ramp_l, ramp_start_h], [ramp_w/2, -ramp_l, ramp_start_h],
+        [ramp_w/2, 0, ramp_end_h], [-ramp_w/2, 0, ramp_end_h]
+    ])
+    ramp = trimesh.convex.convex_hull(ramp_pts)
+    
+    # Grooves
+    # Cutters need to be taller than groove_depth to ensure clean cut from top
+    cut_h_tool = groove_depth * 2 
+    cut_z = base_h  # Centered at top surface roughly? No, box center needs to be positioned.
+    # If box is centered at Z_c, it spans [Z_c - h/2, Z_c + h/2]
+    # We want it to go down to Z = base_h - groove_depth = 2.0
+    # Top at Z = 2 + cut_h_tool = 2 + 8 = 10.
+    # Center Z = 6.0 (base_h) works if cut_h_tool is large enough?
+    # Center at base_h: spans [6-4, 6+4] = [2, 10]. Perfect. Bottom is at 2.0.
+    
+    # Left Groove
+    # Wall center X was -int_w/2 - wall_th/2
+    left_groove = trimesh.creation.box([wall_th + tol, ext_l, cut_h_tool])
+    left_groove.apply_translation([-int_w/2 - wall_th/2, ext_l/2, base_h])
+    
+    # Right Groove
+    right_groove = trimesh.creation.box([wall_th + tol, ext_l, cut_h_tool])
+    right_groove.apply_translation([int_w/2 + wall_th/2, ext_l/2, base_h])
+    
+    # Back Groove
+    # Wall center Y was ext_l - wall_th/2
+    # Width should cover the whole back
+    back_groove = trimesh.creation.box([ext_w, wall_th + tol, cut_h_tool])
+    back_groove.apply_translation([0, ext_l - wall_th/2, base_h])
+    
+    # Door Groove
+    # At slot_y_pos
+    door_groove = trimesh.creation.box([door_print_w + tol, door_th + tol, cut_h_tool])
+    door_groove.apply_translation([0, slot_y_pos, base_h])
+    
+    # Friction Nubs (Small bumps inside the groove to click)
+    # 4 small spheres protruding into the groove from the inner wall
+    nubs = []
+    nub_r = 0.6
+    # Y positions for nubs
+    nub_ys = [ext_l * 0.3, ext_l * 0.7]
+    # Height: Middle of the groove (Z=4.0)
+    nub_z = base_h - groove_depth/2 
+    
+    for y in nub_ys:
+        # Left side nubs (on inner wall X = -int_w/2, pushing Left)
+        # Actually, let's put them on the outer wall pushing In? 
+        # Or inner wall pushing Out?
+        # Let's put them on the Inner Wall of the groove (X = -int_w/2)
+        # Center them slightly inside the groove so they protrude
+        # Groove is from X = -int_w/2 - wall_th to -int_w/2
+        # Nub at -int_w/2. Radius 0.6. Protrudes 0.6 into groove? That's a lot.
+        # Let's center at -int_w/2 + 0.3? No, -int_w/2 is the edge.
+        # -int_w/2 is the Right edge of the Left Wall.
+        # So we want nub at -int_w/2. It sticks 0.6 into the garage (bad) and 0.6 into the wall (good).
+        # Wait, the wall is SOLID. The groove is AIR.
+        # The base has material at X > -int_w/2 (Floor).
+        # So if we put a sphere at X = -int_w/2, half is in the floor, half is in the groove.
+        # Result: A bump sticking into the groove. Perfect.
+        
+        # Left Nubs
+        n1 = trimesh.creation.icosphere(radius=nub_r)
+        n1.apply_translation([-int_w/2, y, nub_z])
+        nubs.append(n1)
+        
+        # Right Nubs (Mirror)
+        n2 = trimesh.creation.icosphere(radius=nub_r)
+        n2.apply_translation([int_w/2, y, nub_z])
+        nubs.append(n2)
+        
+    # Combine
+    # Base = (Plate + Ramp) - Grooves + Nubs
+    # Note: Union Nubs with Plate first, then Subtract Grooves?
+    # No, Nubs must protrude INTO the Groove.
+    # If we Subtract Groove from Plate, we get a hole.
+    # Then we Union Nubs. The Nubs will fill part of that hole.
+    # Correct.
+    
+    base_solid = trimesh.boolean.union([base_plate, ramp] + nubs)
+    base_final = trimesh.boolean.difference([base_solid, left_groove, right_groove, back_groove, door_groove])
+
+    # --- 4. Export ---
     output_dir = os.path.dirname(os.path.abspath(__file__))
     
     garage_path = os.path.join(output_dir, 'garage_structure.stl')
     door_path = os.path.join(output_dir, 'garage_door.stl')
+    base_path = os.path.join(output_dir, 'garage_base.stl')
     
     print(f"Exporting to {garage_path}...")
     garage.export(garage_path)
     
     print(f"Exporting to {door_path}...")
     door_final.export(door_path)
+    
+    print(f"Exporting to {base_path}...")
+    base_final.export(base_path)
     print("Done.")
 
 if __name__ == "__main__":
