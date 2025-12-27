@@ -141,7 +141,7 @@ def create_garage():
     base_plate.apply_translation([0, ext_l/2, base_h/2])
     
     # Ramp
-    ramp_l = 30.0
+    ramp_l = 15.0
     ramp_w = int_w
     ramp_start_h = 1.0
     ramp_end_h = base_h
