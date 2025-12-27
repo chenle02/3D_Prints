@@ -11,8 +11,8 @@ def create_garage():
 
     # Design parameters
     wall_th = 5.0
-    clearance = 10.0  # Total internal clearance (width/length)
-    height_clearance = 15.0 # Extra height for hand access/door mechanism
+    clearance = 20.0  # Total internal clearance (width/length)
+    height_clearance = 40.0 # Extra height for hand access/door mechanism
 
     # Internal dimensions
     int_w = car_w + clearance
