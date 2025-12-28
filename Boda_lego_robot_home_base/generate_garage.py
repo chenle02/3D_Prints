@@ -4,249 +4,283 @@ import os
 
 def create_garage():
     # --- Dimensions (mm) ---
-    # Car dimensions (approx 20cm x 8cm x 4cm)
-    car_l = 200
-    car_w = 80
-    car_h = 40
+    # Robot Dimensions from README: 10.3 x 7.5 x 1.8 inches -> 262 x 191 x 46 mm
+    robot_l = 262.0
+    robot_w = 191.0
+    robot_h = 46.0
 
-    # Design parameters
+    # Clearances (mm)
+    # "2cm on each of four sides, and 4cm on the top"
+    clearance_side = 20.0
+    clearance_top = 40.0
+    
     wall_th = 5.0
-    clearance = 20.0  # Total internal clearance (width/length)
-    height_clearance = 40.0 # Extra height for hand access/door mechanism
 
-    # Internal dimensions
-    int_w = car_w + clearance
-    int_h = car_h + height_clearance
-    int_l = car_l + clearance
+    # Internal Dimensions
+    # Length: Robot L + Front Clearance + Back Clearance
+    int_l = robot_l + clearance_side + clearance_side
+    # Width: Robot W + Left Clearance + Right Clearance
+    int_w = robot_w + clearance_side + clearance_side
+    # Height: Robot H + Top Clearance
+    int_h = robot_h + clearance_top
 
-    # External dimensions
+    # External Dimensions
+    # Width: Int W + 2 walls
     ext_w = int_w + 2 * wall_th
-    ext_h = int_h + wall_th # Roof only, no floor
-    ext_l = int_l + wall_th # Back wall only, front open
+    # Length: Int L + Back wall (Front is open/door)
+    # Wait, if we want a floor, we need the floor to cover the whole length.
+    # If the door is at the front, the external length includes the back wall thickness.
+    ext_l = int_l + wall_th 
+    # Height: Int H + Roof + Floor
+    ext_h = int_h + wall_th + wall_th # Roof (5mm) + Floor (5mm)
 
-    print(f"Generating Garage with External Dimensions: {ext_w}x{ext_l}x{ext_h} mm")
+    print(f"Robot Dimensions: {robot_l}x{robot_w}x{robot_h} mm")
+    print(f"Internal Dimensions: {int_w}x{int_l}x{int_h} mm")
+    print(f"External Dimensions: {ext_w}x{ext_l}x{ext_h} mm")
 
-    # --- 1. Garage Body ---
+    # --- 1. Main Body (Roof + Walls + Floor) ---
     
-    # Create outer solid block
-    # Center at origin initially
-    outer_box = trimesh.creation.box([ext_w, ext_l, ext_h])
+    # Create the solid block
+    main_box = trimesh.creation.box([ext_w, ext_l, ext_h])
     
-    # Position outer box so Z=0 is the bottom (ground)
-    # and Back wall is at +Y
-    # Y range: [-(ext_l - wall_th/2), wall_th/2] ? No, let's keep it simple.
-    # Let's align Back Wall Outer Face to Y = ext_l
-    # Front Opening Face to Y = 0
+    # Alignments
+    # We want the floor bottom at Z=0.
+    # We want the Front Face at Y=0.
+    # We want the Back Wall at Y=ext_l.
+    # Center X at 0.
     
-    # Re-centering strategy:
-    # Outer Box Size: W, L, H
-    # We want bounds:
-    # X: [-ext_w/2, ext_w/2]
-    # Y: [0, ext_l]
-    # Z: [0, ext_h]
-    outer_box.apply_translation([0, ext_l/2, ext_h/2])
+    # Currently centered at 0,0,0.
+    # Shift Z up by ext_h/2
+    # Shift Y... Box Y length is ext_l.
+    # To have front at Y=0, we need center at Y=ext_l/2.
+    main_box.apply_translation([0, ext_l/2, ext_h/2])
 
-    # Create inner subtraction block (Air)
-    # We want to remove material in:
-    # X: [-int_w/2, int_w/2]
-    # Y: [-infinity, ext_l - wall_th] (Front open, Back closed)
-    # Z: [-infinity, int_h] (Bottom open, Top closed)
+    # Create the internal cutout (The Room)
+    # Dimensions: int_w, int_l, int_h
+    # Position:
+    # X: 0
+    # Y: Starts at 0 (Front), ends at int_l. 
+    #    The Back Wall is at Y > int_l.
+    #    Back wall thickness starts at int_l.
+    #    So cutout Y range: [0, int_l].
+    #    Center Y = int_l / 2.
+    # Z: Starts above floor (wall_th).
+    #    Z range: [wall_th, wall_th + int_h].
+    #    Center Z = wall_th + int_h / 2.
     
-    buffer = 5.0
+    # To ensure clean cuts at the front face, we add a buffer to the front Y.
+    buffer = 10.0
     
-    # Cut dimensions
-    cut_w = int_w
-    cut_l = (ext_l - wall_th) + buffer # Length from -buffer to (ext_l - wall_th)
-    cut_h = int_h + buffer # Height from -buffer to int_h
+    cutout_w = int_w
+    cutout_l = int_l + buffer
+    cutout_h = int_h
     
-    inner_box = trimesh.creation.box([cut_w, cut_l, cut_h])
+    room_cutout = trimesh.creation.box([cutout_w, cutout_l, cutout_h])
     
-    # Position inner box
-    # X: 0 (Centered)
-    # Y: Center of range [-buffer, ext_l - wall_th]
-    cut_y_center = (ext_l - wall_th - buffer) / 2
-    # Z: Center of range [-buffer, int_h]
-    cut_z_center = (int_h - buffer) / 2
+    # Position Cutout
+    # Y Center: We want it to span [-buffer, int_l].
+    # Center = (-buffer + int_l) / 2
+    room_y_center = (int_l - buffer) / 2
+    # Z Center
+    room_z_center = wall_th + int_h / 2
     
-    inner_box.apply_translation([0, cut_y_center, cut_z_center])
+    room_cutout.apply_translation([0, room_y_center, room_z_center])
 
-    # Create Door Grooves (Vertical Slots)
-    # We want the door to slide down from the top? Or just sit there?
-    # "Garage door opens upwards".
-    # Simplest meaningful printable mechanism: Vertical slots in the side walls at the front opening.
-    # Slot size: 
+    # --- Door Mechanism (Sliding Sideways) ---
+    # "Front door opens like by side ways from the right side"
+    # We'll create a slot in the RIGHT wall (X > 0) for the door to slide through.
+    # And grooves in the Floor and Roof near the front.
+    
     door_th = 4.0
-    slot_depth = 2.5 # Into the wall
-    slot_width = door_th + 1.0 # Tolerance
+    door_groove_depth = 2.5 # How deep into floor/roof
+    door_pos_y = 10.0 # Distance from front face
     
-    # Slot location: Just inside the front opening (Y approx 5mm from front?)
-    slot_y_pos = 5.0 
+    # Door Slot in Right Wall
+    # Needs to be slightly wider than door thickness and tall enough.
+    # Slot Height: int_h (full height of opening)
+    # Slot Width: door_th + tolerance
+    slot_tol = 1.0
+    wall_slot_w = door_th + slot_tol
+    wall_slot_h = int_h # Cut through the wall fully in Z? No, keep structural integrity if possible?
+    # If we cut fully, the front pillar of the right wall separates.
+    # Usually better to make a "tunnel" through the wall.
+    # But for printing, a full cut is often cleaner if supported.
+    # Let's make a tunnel (leaving a bridge at top and bottom? No, floor/roof handles that).
     
-    left_slot = trimesh.creation.box([slot_depth*2, slot_width, int_h * 2]) # Tall enough to cut through
-    # Position Left Slot:
-    # X: -int_w/2 - slot_depth/2 + epsilon?
-    # We want to cut into the wall at X = -int_w/2.
-    # So slot center X = -int_w/2
-    left_slot.apply_translation([-int_w/2, slot_y_pos, int_h/2])
+    # Slot Cutout Object
+    # Long enough to go through the wall (wall_th).
+    # Width (Y axis in this context? No, slot is along X axis? No, slot allows X movement).
+    # The slot is a hole in the Y-Z plane of the wall?
+    # No, the Right Wall is in the Y-Z plane.
+    # We want a hole through it.
+    # Dimensions: 
+    # X: wall_th + buffer (to cut through)
+    # Y: wall_slot_w (Thickness of door)
+    # Z: wall_slot_h (Height of door passage)
     
-    right_slot = trimesh.creation.box([slot_depth*2, slot_width, int_h * 2])
-    # Position Right Slot: X = int_w/2
-    right_slot.apply_translation([int_w/2, slot_y_pos, int_h/2])
+    # Wait, the door is a panel in the X-Z plane (when closed).
+    # It slides along X.
+    # So it needs to pass through the Right Wall.
+    # Right Wall is at X = int_w/2 to ext_w/2.
+    # We need a cut there.
+    # Cut Size:
+    # X: wall_th * 2 (big enough)
+    # Y: wall_slot_w
+    # Z: wall_slot_h + 2*clearance?
+    # Actually, the door needs to slide in grooves.
+    # Grooves are in Floor and Roof.
+    # The Slot in the Wall connects these grooves.
+    
+    # 1. Floor/Roof Grooves (spanning full width to allow sliding)
+    # We need the groove to go from Left Wall (stopper) through Right Wall (exit).
+    # Groove Length (X): From -int_w/2 to +ext_w/2 + extra (for door to stick out?)
+    # Let's just cut through the Right Wall entirely.
+    groove_len = ext_w # Full width
+    groove_w = door_th + slot_tol
+    groove_d = door_groove_depth
+    
+    # Floor Groove
+    floor_groove = trimesh.creation.box([groove_len, groove_w, groove_d * 2]) # *2 for clean cut
+    # Position:
+    # X: 0 (Center)
+    # Y: door_pos_y
+    # Z: wall_th (Floor surface) - groove_d/2? No, we want to cut DOWN from wall_th.
+    # Center at Z = wall_th.
+    floor_groove.apply_translation([0, door_pos_y, wall_th])
 
-    # Top Slot (Cut through the roof to allow door insertion)
-    top_slot = trimesh.creation.box([int_w, slot_width, wall_th * 2])
-    top_slot.apply_translation([0, slot_y_pos, ext_h])
+    # Roof Groove
+    roof_groove = trimesh.creation.box([groove_len, groove_w, groove_d * 2])
+    # Position:
+    # X: 0
+    # Y: door_pos_y
+    # Z: wall_th + int_h (Ceiling surface). We want to cut UP into roof.
+    # Center at Z = wall_th + int_h.
+    roof_groove.apply_translation([0, door_pos_y, wall_th + int_h])
 
-    # Combine subtractions
-    # Garage = Outer - Inner - Slots
-    garage = trimesh.boolean.difference([outer_box, inner_box, left_slot, right_slot, top_slot])
+    # Wall Pass-through Slot (Right Wall)
+    # This clears the material between floor and roof in the right wall.
+    # X Position: Right Wall Center = int_w/2 + wall_th/2
+    # Y Position: door_pos_y
+    # Z Position: Center of room height
+    wall_pass = trimesh.creation.box([wall_th * 2, groove_w, int_h])
+    wall_pass.apply_translation([int_w/2 + wall_th/2, door_pos_y, wall_th + int_h/2])
+
+    # --- Windows ---
+    # "3 windows on the door. Same for the walls."
+    # We'll put 3 windows on the Left Wall and 3 on the Right Wall.
+    # (The Right Wall has the door slot, but there is plenty of length behind it).
+    
+    win_w = 30.0
+    win_h = 20.0
+    win_depth = wall_th * 3 # To cut through
+    
+    # Window Spacing
+    # Wall Length = ext_l. Room Length = int_l.
+    # Distribute 3 windows along Y axis in the room area.
+    # Range: Y=[0, int_l]
+    # Positions: 25%, 50%, 75%
+    win_y_positions = [int_l * 0.25, int_l * 0.50, int_l * 0.75]
+    # Height: "Top half part".
+    win_z_pos = wall_th + int_h * 0.75
+    
+    wall_windows = []
+    
+    for y in win_y_positions:
+        # Left Wall Window
+        # X: -ext_w/2
+        wl = trimesh.creation.box([win_depth, win_w, win_h]) # Note: win_w is length along Y here
+        wl.apply_translation([-ext_w/2, y, win_z_pos])
+        wall_windows.append(wl)
+        
+        # Right Wall Window
+        # X: ext_w/2
+        wr = trimesh.creation.box([win_depth, win_w, win_h])
+        wr.apply_translation([ext_w/2, y, win_z_pos])
+        wall_windows.append(wr)
+
+    # --- Boolean Operations for Body ---
+    cutters = [room_cutout, floor_groove, roof_groove, wall_pass] + wall_windows
+    main_body = trimesh.boolean.difference([main_box] + cutters)
+
+    # --- SPLIT FOR PRINTER (256mm limit) ---
+    # The total length (ext_l) is ~307mm, which exceeds 256mm.
+    # We must split the body into Front and Back parts.
+    print(f"Total Length {ext_l:.1f}mm > 256mm. Splitting model into Front and Back parts.")
+    
+    split_y = ext_l / 2
+    
+    # Create cutting masks
+    # Front Mask: Covers Y from -inf to split_y
+    # Back Mask: Covers Y from split_y to +inf
+    # Size needs to be large enough to cover the whole object
+    mask_size = 1000.0
+    
+    # Front Part: Intersect with a box from Y = -500 to split_y
+    # Center Y of this box: split_y - mask_size/2
+    front_mask = trimesh.creation.box([mask_size, mask_size, mask_size])
+    front_mask.apply_translation([0, split_y - mask_size/2, 0])
+    
+    # Back Part: Intersect with a box from Y = split_y to +500
+    # Center Y of this box: split_y + mask_size/2
+    back_mask = trimesh.creation.box([mask_size, mask_size, mask_size])
+    back_mask.apply_translation([0, split_y + mask_size/2, 0])
+    
+    # Perform Split
+    # Using intersection is cleaner than difference for splitting usually
+    garage_front = trimesh.boolean.intersection([main_body, front_mask])
+    garage_back = trimesh.boolean.intersection([main_body, back_mask])
 
     # --- 2. Garage Door ---
+    # Dimensions:
+    # Width: Must cover the opening (int_w) + some overlap?
+    # Actually, it slides. It needs to be wider than the opening to not fall out?
+    # Let's make it int_w + 10mm overlap on left (stopper side).
+    # And tall enough to ride in grooves.
+    # Height: int_h + 2*groove_depth - tolerance
+    door_h_total = int_h + 2 * door_groove_depth - 1.0 # 1mm vertical play
+    door_w_total = int_w + 10.0 
     
-    # Door dimensions
-    # Width: int_w + 2*slot_depth_engagement - tolerance
-    # Let's say it engages 2mm into each slot (which is 2.5mm deep).
-    # Width = int_w + 4mm - 1mm(tolerance)
-    door_print_w = int_w + 3.0
-    door_print_h = ext_h + 5.0 # Taller than roof to grab from top
+    door_panel = trimesh.creation.box([door_w_total, door_th, door_h_total])
+    # Center at origin for export
     
-    door_panel = trimesh.creation.box([door_print_w, door_th, door_print_h])
-    door_panel.apply_translation([0, 0, door_print_h/2])
+    # Windows on Door
+    # 3 Windows. "Top half".
+    # Distributed along X.
+    door_win_y_size = 10.0 # Height of window
+    door_win_x_size = 30.0 # Width of window
+    door_win_depth = door_th * 2
     
-    # Windows
-    # "Top half part of the door"
-    # Create 3 small windows
-    win_w = 12.0
-    win_h = 10.0
-    win_th = door_th + 10.0
+    door_windows = []
+    win_x_positions = [-door_w_total*0.3, 0, door_w_total*0.3]
+    # Z pos relative to door center. Door height is door_h_total.
+    # Top half center -> Z = door_h_total/4 (since 0 is center)
+    door_win_z = door_h_total * 0.25 
     
-    windows = []
-    # Z position: Top half. say 75% height
-    win_z = door_print_h * 0.75
-    
-    for x_off in [-door_print_w/4, 0, door_print_w/4]:
-        w = trimesh.creation.box([win_w, win_th, win_h])
-        w.apply_translation([x_off, 0, win_z])
-        windows.append(w)
+    for x in win_x_positions:
+        dw = trimesh.creation.box([door_win_x_size, door_win_depth, door_win_y_size])
+        dw.apply_translation([x, 0, door_win_z])
+        door_windows.append(dw)
         
-    door_final = trimesh.boolean.difference([door_panel] + windows)
+    door_final = trimesh.boolean.difference([door_panel] + door_windows)
 
-    # --- 3. Garage Base ---
-    base_h = 6.0
-    groove_depth = 4.0
-    tol = 0.2  # Tolerance for fit
-    
-    # Base Plate
-    base_plate = trimesh.creation.box([ext_w, ext_l, base_h])
-    base_plate.apply_translation([0, ext_l/2, base_h/2])
-    
-    # Ramp
-    ramp_l = 15.0
-    ramp_w = int_w
-    ramp_start_h = 1.0
-    ramp_end_h = base_h
-    
-    # Ramp is a convex hull of 8 points
-    ramp_pts = np.array([
-        [-ramp_w/2, -ramp_l, 0], [ramp_w/2, -ramp_l, 0],
-        [ramp_w/2, 0, 0], [-ramp_w/2, 0, 0],
-        [-ramp_w/2, -ramp_l, ramp_start_h], [ramp_w/2, -ramp_l, ramp_start_h],
-        [ramp_w/2, 0, ramp_end_h], [-ramp_w/2, 0, ramp_end_h]
-    ])
-    ramp = trimesh.convex.convex_hull(ramp_pts)
-    
-    # Grooves
-    # Cutters need to be taller than groove_depth to ensure clean cut from top
-    cut_h_tool = groove_depth * 2 
-    cut_z = base_h  # Centered at top surface roughly? No, box center needs to be positioned.
-    # If box is centered at Z_c, it spans [Z_c - h/2, Z_c + h/2]
-    # We want it to go down to Z = base_h - groove_depth = 2.0
-    # Top at Z = 2 + cut_h_tool = 2 + 8 = 10.
-    # Center Z = 6.0 (base_h) works if cut_h_tool is large enough?
-    # Center at base_h: spans [6-4, 6+4] = [2, 10]. Perfect. Bottom is at 2.0.
-    
-    # Left Groove
-    # Wall center X was -int_w/2 - wall_th/2
-    left_groove = trimesh.creation.box([wall_th + tol, ext_l, cut_h_tool])
-    left_groove.apply_translation([-int_w/2 - wall_th/2, ext_l/2, base_h])
-    
-    # Right Groove
-    right_groove = trimesh.creation.box([wall_th + tol, ext_l, cut_h_tool])
-    right_groove.apply_translation([int_w/2 + wall_th/2, ext_l/2, base_h])
-    
-    # Back Groove
-    # Wall center Y was ext_l - wall_th/2
-    # Width should cover the whole back
-    back_groove = trimesh.creation.box([ext_w, wall_th + tol, cut_h_tool])
-    back_groove.apply_translation([0, ext_l - wall_th/2, base_h])
-    
-    # Door Groove
-    # At slot_y_pos
-    door_groove = trimesh.creation.box([door_print_w + tol, door_th + tol, cut_h_tool])
-    door_groove.apply_translation([0, slot_y_pos, base_h])
-    
-    # Friction Nubs (Small bumps inside the groove to click)
-    # 4 small spheres protruding into the groove from the inner wall
-    nubs = []
-    nub_r = 0.6
-    # Y positions for nubs
-    nub_ys = [ext_l * 0.3, ext_l * 0.7]
-    # Height: Middle of the groove (Z=4.0)
-    nub_z = base_h - groove_depth/2 
-    
-    for y in nub_ys:
-        # Left side nubs (on inner wall X = -int_w/2, pushing Left)
-        # Actually, let's put them on the outer wall pushing In? 
-        # Or inner wall pushing Out?
-        # Let's put them on the Inner Wall of the groove (X = -int_w/2)
-        # Center them slightly inside the groove so they protrude
-        # Groove is from X = -int_w/2 - wall_th to -int_w/2
-        # Nub at -int_w/2. Radius 0.6. Protrudes 0.6 into groove? That's a lot.
-        # Let's center at -int_w/2 + 0.3? No, -int_w/2 is the edge.
-        # -int_w/2 is the Right edge of the Left Wall.
-        # So we want nub at -int_w/2. It sticks 0.6 into the garage (bad) and 0.6 into the wall (good).
-        # Wait, the wall is SOLID. The groove is AIR.
-        # The base has material at X > -int_w/2 (Floor).
-        # So if we put a sphere at X = -int_w/2, half is in the floor, half is in the groove.
-        # Result: A bump sticking into the groove. Perfect.
-        
-        # Left Nubs
-        n1 = trimesh.creation.icosphere(radius=nub_r)
-        n1.apply_translation([-int_w/2, y, nub_z])
-        nubs.append(n1)
-        
-        # Right Nubs (Mirror)
-        n2 = trimesh.creation.icosphere(radius=nub_r)
-        n2.apply_translation([int_w/2, y, nub_z])
-        nubs.append(n2)
-        
-    # Combine
-    # Base = (Plate + Ramp) - Grooves + Nubs
-    # Note: Union Nubs with Plate first, then Subtract Grooves?
-    # No, Nubs must protrude INTO the Groove.
-    # If we Subtract Groove from Plate, we get a hole.
-    # Then we Union Nubs. The Nubs will fill part of that hole.
-    # Correct.
-    
-    base_solid = trimesh.boolean.union([base_plate, ramp] + nubs)
-    base_final = trimesh.boolean.difference([base_solid, left_groove, right_groove, back_groove, door_groove])
-
-    # --- 4. Export ---
+    # --- Export ---
     output_dir = os.path.dirname(os.path.abspath(__file__))
     
-    garage_path = os.path.join(output_dir, 'garage_structure.stl')
-    door_path = os.path.join(output_dir, 'garage_door.stl')
-    base_path = os.path.join(output_dir, 'garage_base.stl')
+    # Split Filenames
+    front_path = os.path.join(output_dir, 'lego_robot_home_base_part1_front.stl')
+    back_path = os.path.join(output_dir, 'lego_robot_home_base_part2_back.stl')
+    door_path = os.path.join(output_dir, 'lego_robot_home_base_door.stl')
     
-    print(f"Exporting to {garage_path}...")
-    garage.export(garage_path)
+    print(f"Exporting Front Part to {front_path}...")
+    garage_front.export(front_path)
     
-    print(f"Exporting to {door_path}...")
+    print(f"Exporting Back Part to {back_path}...")
+    garage_back.export(back_path)
+    
+    print(f"Exporting Door to {door_path}...")
     door_final.export(door_path)
     
-    print(f"Exporting to {base_path}...")
-    base_final.export(base_path)
-    print("Done.")
+    print("Generation Complete.")
 
 if __name__ == "__main__":
     create_garage()
