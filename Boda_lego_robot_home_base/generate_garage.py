@@ -10,8 +10,8 @@ def create_garage():
     robot_h = 46.0
 
     # Clearances (mm)
-    # "2cm on each of four sides, and 4cm on the top"
-    clearance_side = 20.0
+    # "2cm on each of four sides, and 4cm on the top" -> REDUCED SIDE CLEARANCE to 10mm (User request: too wide)
+    clearance_side = 10.0
     clearance_top = 40.0
     
     wall_th = 5.0
