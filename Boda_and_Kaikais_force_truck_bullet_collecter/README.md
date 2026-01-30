@@ -9,11 +9,10 @@ Rear cargo bed suitable for scale accessories or towing
 This model is intended for scale realism, not speed. It performs best at low speeds with high torque, similar to the real vehicle.
 📐 Dimensions
 All dimensions are for the entire truck, measured bumper-to-bumper.
-Overall Length: (fill in your measured value)
-Overall Width: (fill in your measured value)
-Overall Height: (fill in your measured value)
-Ground Clearance: (optional)
-Dimensions are listed below to help with scaling accessories and trailer design.
+	•	Length: ~13.2 inches (≈335 mm)
+	•	Width: ~5.5 inches (≈140 mm)
+	•	Height: ~5.7 inches (≈145 mm)
+(These figures come from a similar 1:16 M35 4×4 RC truck listing that does list dimensions.)  Dimensions are listed below to help with scaling accessories and trailer design.
 🔗 Rear Hitch / Towing Setup
 The real M35A2 uses a pintle hitch, and this RC model follows the same idea in scale.
 Rear connection details:
