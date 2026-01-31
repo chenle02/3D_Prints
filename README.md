@@ -24,10 +24,14 @@ Each project resides in its own folder and includes:
    - **Path:** `202502_Valentine_gifts/`
    - **Description:** Personalized phone stands as Valentine’s gifts.
 
- - **Zhihe Gift (Custom Gift Box for Zhihe Wu’s 6th Birthday)**
-   - **Path:** `202502_Zhihe_Gift/`
-   - **Description:** Custom gift box for Zhihe Wu’s 6th birthday.
-   - **License:** Standard Digital File License (SDFL)
+  - **Zhihe Gift (Custom Gift Box for Zhihe Wu’s 6th Birthday)**
+    - **Path:** `202502_Zhihe_Gift/`
+    - **Description:** Custom gift box for Zhihe Wu’s 6th birthday.
+    - **License:** Standard Digital File License (SDFL)
+
+  - **Bullet Collector for RC M35A2 Force Truck**
+    - **Path:** `Boda_and_Kaikais_force_truck_bullet_collecter/`
+    - **Description:** Scale ammo can style bullet collector accessory for the RC military truck.
 
  ## Getting Started
 
