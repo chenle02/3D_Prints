@@ -32,6 +32,7 @@ This is a curated collection of personal 3D printing projects, gifts, and design
 **File Conventions:**
   - **Source files:** Use `.3mf` for PrusaSlicer project files (preserves settings, parts, etc.)
   - **Export files:** Use `.stl` for raw geometry (printable)
+  - **File size:** Keep STL files reasonably sized; consider compression or splitting for large models
   - **Previews:** `.png` images auto-generated from STL files
   - **Documentation:** Each project folder must have a `README.md`
 
@@ -41,6 +42,9 @@ This is a curated collection of personal 3D printing projects, gifts, and design
 ```bash
 # Install Python dependencies
 pip3 install -r requirements.txt
+
+# Optional: Use the existing virtual environment (.venv)
+# source .venv/bin/activate
 
 # Optional: Set up Git hooks for automatic preview generation
 scripts/install_hooks.sh
@@ -129,6 +133,8 @@ Consider adding automated linting via pre-commit hooks. Example configuration fi
 
 ## Agent-Specific Instructions
 
+This document serves as the primary guidance for agentic coding agents. No Cursor rules or Copilot instructions are configured.
+
 ### Guidelines for Agents
 - **Check existing patterns:** Look at similar projects for naming and structure
 - **Follow chronological naming:** New projects must use `YYYYMM_` prefix  
@@ -141,7 +147,7 @@ Consider adding automated linting via pre-commit hooks. Example configuration fi
 - **Improving docs:** Keep README files concise but informative
 
 ### Troubleshooting
-- **Preview generation fails:** Check trimesh installation, STL file integrity
+- **Preview generation fails:** Check trimesh installation (ensure `trimesh[all]` is installed), STL file integrity, and OpenGL support for rendering. On headless systems, install `pyrender` and configure appropriate backend.
 - **Git hooks not running:** Verify `core.hooksPath` configuration
 - **Import errors:** Ensure virtual environment is activated and dependencies installed
 ## References
@@ -152,4 +158,4 @@ Consider adding automated linting via pre-commit hooks. Example configuration fi
 
 ---
 
-*This document should be updated as the repository evolves. Last updated: 2025-01-30*
+*This document should be updated as the repository evolves. Last updated: 2026-01-30*
