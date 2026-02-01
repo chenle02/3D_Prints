@@ -12,7 +12,8 @@ def create_garage():
     # Clearances (mm)
     # "2cm on each of four sides, and 4cm on the top" -> REDUCED SIDE CLEARANCE to 10mm (User request: too wide)
     clearance_side = 10.0
-    clearance_top = 40.0
+    # Increased top clearance to reach ~132mm total height (Robot 46 + 76 + 10 = 132)
+    clearance_top = 76.0
     
     wall_th = 5.0
 
@@ -232,36 +233,19 @@ def create_garage():
 
     # --- 2. Garage Door ---
     # Dimensions:
-    # Width: Must cover the opening (int_w) + some overlap?
-    # Actually, it slides. It needs to be wider than the opening to not fall out?
-    # Let's make it int_w + 10mm overlap on left (stopper side).
-    # And tall enough to ride in grooves.
     # Height: int_h + 2*groove_depth - tolerance
     door_h_total = int_h + 2 * door_groove_depth - 1.0 # 1mm vertical play
-    door_w_total = int_w + 10.0 
+
+    # Width: Must cover the opening (int_w) + some overlap?
+    # Actually, it slides. It needs to be wider than the opening to not fall out?
+    # User requested exactly 220mm width.
+    door_w_total = 220.0
     
     door_panel = trimesh.creation.box([door_w_total, door_th, door_h_total])
     # Center at origin for export
     
-    # Windows on Door
-    # 3 Windows. "Top half".
-    # Distributed along X.
-    door_win_y_size = 10.0 # Height of window
-    door_win_x_size = 30.0 # Width of window
-    door_win_depth = door_th * 2
-    
-    door_windows = []
-    win_x_positions = [-door_w_total*0.3, 0, door_w_total*0.3]
-    # Z pos relative to door center. Door height is door_h_total.
-    # Top half center -> Z = door_h_total/4 (since 0 is center)
-    door_win_z = door_h_total * 0.25 
-    
-    for x in win_x_positions:
-        dw = trimesh.creation.box([door_win_x_size, door_win_depth, door_win_y_size])
-        dw.apply_translation([x, 0, door_win_z])
-        door_windows.append(dw)
-        
-    door_final = trimesh.boolean.difference([door_panel] + door_windows)
+    # Solid Door (No Windows) - User requested removing "rectangular holes"
+    door_final = door_panel
 
     # --- Export ---
     output_dir = os.path.dirname(os.path.abspath(__file__))
